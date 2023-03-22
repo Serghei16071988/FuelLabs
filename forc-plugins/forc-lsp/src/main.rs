@@ -10,11 +10,15 @@ use clap::Parser;
     about = "Forc plugin for the Sway LSP (Language Server Protocol) implementation.",
     version
 )]
-struct App {}
+pub struct Command {
+    /// The port of the socket to connect to.
+    #[clap(long)]
+    pub socket: String,
+}
 
 #[tokio::main]
 async fn main() {
-    App::parse();
+    let Command { socket } = Command::parse();
 
-    sway_lsp::start().await
+    sway_lsp::start(socket).await
 }

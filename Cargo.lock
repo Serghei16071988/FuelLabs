@@ -5114,6 +5114,7 @@ version = "0.35.5"
 dependencies = [
  "anyhow",
  "assert-json-diff",
+ "clap 4.1.4",
  "dashmap",
  "dirs 4.0.0",
  "forc-pkg",
@@ -5139,6 +5140,7 @@ dependencies = [
  "tempfile",
  "thiserror",
  "tokio",
+ "tokio-util",
  "toml_edit 0.19.3",
  "tower",
  "tower-lsp",
@@ -5586,6 +5588,7 @@ checksum = "0bb2e075f03b3d66d8d8785356224ba688d2906a371015e225beeb65ca92c740"
 dependencies = [
  "bytes",
  "futures-core",
+ "futures-io",
  "futures-sink",
  "pin-project-lite",
  "tokio",

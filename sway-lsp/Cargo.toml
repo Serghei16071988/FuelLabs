@@ -10,9 +10,11 @@ repository.workspace = true
 
 [dependencies]
 anyhow = "1.0.41"
+clap = { version = "4.0.18", features = ["derive"] }
 dashmap = "5.4"
 forc-pkg = { version = "0.35.5", path = "../forc-pkg" }
 forc-tracing = { version = "0.35.5", path = "../forc-tracing" }
+futures = { version = "0.3", default-features = false, features = ["std", "async-await"] }
 notify = "5.0.0"
 notify-debouncer-mini = { version = "0.2.0" }
 parking_lot = "0.12.1"
@@ -31,7 +33,8 @@ swayfmt = { version = "0.35.5", path = "../swayfmt" }
 syn = { version = "1.0.73", features = ["full"] }
 tempfile = "3"
 thiserror = "1.0.30"
-tokio = { version = "1.3", features = ["io-std", "io-util", "macros", "net", "rt-multi-thread", "sync", "time"] }
+tokio = { version = "1.17", features = ["io-util", "io-std", "macros", "net", "rt-multi-thread", "sync", "time"] }
+tokio-util = { version = "0.7", features = ["codec", "compat"] }
 toml_edit = "0.19"
 tower-lsp = { version = "0.18", features = ["proposed"] }
 tracing = "0.1"
@@ -39,6 +42,5 @@ tracing = "0.1"
 [dev-dependencies]
 assert-json-diff = "2.0"
 dirs = "4.0"
-futures = { version = "0.3", default-features = false, features = ["std", "async-await"] }
 sway-lsp-test-utils = { path = "tests/utils" }
 tower = { version = "0.4.12", default-features = false, features = ["util"] }
