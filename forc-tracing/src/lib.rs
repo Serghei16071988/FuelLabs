@@ -3,11 +3,14 @@
 use ansi_term::Colour;
 use std::str;
 use std::{env, io};
-use tracing::{Level, Metadata};
+use tracing::{Level, Metadata, Subscriber};
+use tracing_honeycomb::{self, new_honeycomb_telemetry_layer};
+use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::{
     filter::{EnvFilter, LevelFilter},
     fmt::MakeWriter,
 };
+use tracing_subscriber::{registry, Layer};
 
 pub fn println_red(txt: &str) {
     println_std_out(txt, Colour::Red);
@@ -92,45 +95,70 @@ pub struct TracingSubscriberOptions {
 ///
 /// `RUST_LOG` environment variable can be used to set different minimum level for the subscriber, default is `INFO`.
 pub fn init_tracing_subscriber(options: TracingSubscriberOptions) {
-    let env_filter = match env::var_os(LOG_FILTER) {
-        Some(_) => EnvFilter::try_from_default_env().expect("Invalid `RUST_LOG` provided"),
-        None => EnvFilter::new("info"),
-    };
+    // let env_filter = match env::var_os(LOG_FILTER) {
+    //     Some(_) => EnvFilter::try_from_default_env().expect("Invalid `RUST_LOG` provided"),
+    //     None => EnvFilter::new("info"),
+    // };
 
-    let level_filter = options
-        .log_level
-        .or_else(|| {
-            options.verbosity.and_then(|verbosity| {
-                match verbosity {
-                    1 => Some(LevelFilter::DEBUG), // matches --verbose or -v
-                    2 => Some(LevelFilter::TRACE), // matches -vv
-                    _ => None,
-                }
-            })
-        })
-        .or_else(|| {
-            options.silent.and_then(|silent| match silent {
-                true => Some(LevelFilter::OFF),
-                _ => None,
-            })
-        });
+    // let level_filter = options
+    //     .log_level
+    //     .or_else(|| {
+    //         options.verbosity.and_then(|verbosity| {
+    //             match verbosity {
+    //                 1 => Some(LevelFilter::DEBUG), // matches --verbose or -v
+    //                 2 => Some(LevelFilter::TRACE), // matches -vv
+    //                 _ => None,
+    //             }
+    //         })
+    //     })
+    //     .or_else(|| {
+    //         options.silent.and_then(|silent| match silent {
+    //             true => Some(LevelFilter::OFF),
+    //             _ => None,
+    //         })
+    //     });
 
-    let builder = tracing_subscriber::fmt::Subscriber::builder()
-        .with_env_filter(env_filter)
-        .with_ansi(true)
-        .with_level(false)
-        .with_file(false)
-        .with_line_number(false)
-        .without_time()
-        .with_target(false)
-        .with_writer(StdioTracingWriter {
-            writer_mode: options.writer_mode.unwrap_or(TracingWriterMode::Stdio),
-        });
+    let layer = tracing_subscriber::fmt::Layer::default()
+        .with_writer(std::io::stderr)
+        .boxed();
+
+    // let builder: dyn Layer<dyn Subscriber> = tracing_subscriber::fmt::Layer::default()
+    //     // .with_env_filter(env_filter)
+    //     .with_ansi(true)
+    //     .with_level(false)
+    //     .with_file(false)
+    //     .with_line_number(false)
+    //     .without_time()
+    //     .with_target(false)
+    //     .with_writer(StdioTracingWriter {
+    //         writer_mode: options.writer_mode.unwrap_or(TracingWriterMode::Stdio),
+    //     });
 
     // If log level, verbosity, or silent mode is set, it overrides the RUST_LOG setting
-    if let Some(level_filter) = level_filter {
-        builder.with_max_level(level_filter).init();
-    } else {
-        builder.init();
-    }
+    // if let Some(level_filter) = level_filter {
+    //     builder.with_max_level(level_filter).boxed();
+    // } else {
+    //     builder.boxed();
+    // }
+
+    let honeycomb_key = "vPFDUQvdhptyDHyyVlPUAC".into();
+
+    let telemetry_layer = {
+        let service_name = format!("forc-lsp");
+        let honeycomb_config = libhoney::Config {
+            options: libhoney::client::Options {
+                api_key: honeycomb_key,
+                dataset: service_name,
+                ..libhoney::client::Options::default()
+            },
+            transmission_options: libhoney::transmission::Options::default(),
+        };
+        new_honeycomb_telemetry_layer("forc-lsp", honeycomb_config)
+    };
+
+    let subscriber = registry::Registry::default() // provide underlying span data store
+        .with(layer)
+        .with(telemetry_layer); // publish to honeycomb backend
+
+    tracing::subscriber::set_global_default(subscriber).expect("setting global default failed");
 }

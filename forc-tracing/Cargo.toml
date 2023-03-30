@@ -12,3 +12,5 @@ repository.workspace = true
 ansi_term = "0.12"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["ansi", "env-filter", "json"] }
+libhoney-rust = { version = "0.1.6" }
+tracing-honeycomb = { version = "0.4", features = ["use_parking_lot"] }

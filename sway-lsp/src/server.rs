@@ -21,7 +21,8 @@ use std::{
 use sway_types::{Ident, Spanned};
 use tower_lsp::lsp_types::*;
 use tower_lsp::{jsonrpc, Client, LanguageServer};
-use tracing::metadata::LevelFilter;
+use tracing::{instrument, metadata::LevelFilter};
+use tracing_honeycomb::{register_dist_tracing_root, TraceId};
 
 #[derive(Debug)]
 pub struct Backend {
@@ -225,7 +226,10 @@ impl LanguageServer for Backend {
         tracing::info!("Sway Language Server Initialized");
     }
 
+    #[instrument(skip(self))]
     async fn shutdown(&self) -> jsonrpc::Result<()> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         tracing::info!("Shutting Down the Sway Language Server");
 
         let _ = self.sessions.iter().map(|item| {
@@ -237,7 +241,10 @@ impl LanguageServer for Backend {
     }
 
     // Document Handlers
+    #[instrument(skip(self, params))]
     async fn did_open(&self, params: DidOpenTextDocumentParams) {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         match self.get_uri_and_session(&params.text_document.uri) {
             Ok((uri, session)) => {
                 session.handle_open_file(&uri);
@@ -248,7 +255,10 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn did_change(&self, params: DidChangeTextDocumentParams) {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         let config = self.config.read().on_enter.clone();
         match self.get_uri_and_session(&params.text_document.uri) {
             Ok((uri, session)) => {
@@ -269,7 +279,10 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn did_save(&self, params: DidSaveTextDocumentParams) {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         match self.get_uri_and_session(&params.text_document.uri) {
             Ok((uri, session)) => {
                 // overwrite the contents of the tmp/folder with everything in
@@ -294,7 +307,10 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn did_change_watched_files(&self, params: DidChangeWatchedFilesParams) {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         for event in params.changes {
             if event.typ == FileChangeType::DELETED {
                 match self.get_uri_and_session(&event.uri) {
@@ -307,7 +323,10 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn hover(&self, params: HoverParams) -> jsonrpc::Result<Option<Hover>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         match self.get_uri_and_session(&params.text_document_position_params.text_document.uri) {
             Ok((uri, session)) => {
                 let position = params.text_document_position_params.position;
@@ -325,10 +344,13 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn code_action(
         &self,
         params: CodeActionParams,
     ) -> jsonrpc::Result<Option<CodeActionResponse>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         match self.get_uri_and_session(&params.text_document.uri) {
             Ok((temp_uri, session)) => Ok(capabilities::code_actions(
                 session,
@@ -343,7 +365,10 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn code_lens(&self, params: CodeLensParams) -> jsonrpc::Result<Option<Vec<CodeLens>>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         let mut result = vec![];
         match self.get_uri_and_session(&params.text_document.uri) {
             Ok((_, session)) => {
@@ -365,10 +390,13 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn completion(
         &self,
         params: CompletionParams,
     ) -> jsonrpc::Result<Option<CompletionResponse>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         let trigger_char = params
             .context
             .map(|ctx| ctx.trigger_character)
@@ -386,10 +414,13 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn document_symbol(
         &self,
         params: DocumentSymbolParams,
     ) -> jsonrpc::Result<Option<DocumentSymbolResponse>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         match self.get_uri_and_session(&params.text_document.uri) {
             Ok((uri, session)) => Ok(session
                 .symbol_information(&uri)
@@ -401,10 +432,13 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn semantic_tokens_full(
         &self,
         params: SemanticTokensParams,
     ) -> jsonrpc::Result<Option<SemanticTokensResult>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         match self.get_uri_and_session(&params.text_document.uri) {
             Ok((uri, session)) => Ok(capabilities::semantic_tokens::semantic_tokens_full(
                 session, &uri,
@@ -416,10 +450,13 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn document_highlight(
         &self,
         params: DocumentHighlightParams,
     ) -> jsonrpc::Result<Option<Vec<DocumentHighlight>>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         match self.get_uri_and_session(&params.text_document_position_params.text_document.uri) {
             Ok((uri, session)) => {
                 let position = params.text_document_position_params.position;
@@ -434,10 +471,13 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn goto_definition(
         &self,
         params: GotoDefinitionParams,
     ) -> jsonrpc::Result<Option<GotoDefinitionResponse>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         match self.get_uri_and_session(&params.text_document_position_params.text_document.uri) {
             Ok((uri, session)) => {
                 let position = params.text_document_position_params.position;
@@ -450,10 +490,13 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn formatting(
         &self,
         params: DocumentFormattingParams,
     ) -> jsonrpc::Result<Option<Vec<TextEdit>>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         self.get_uri_and_session(&params.text_document.uri)
             .and_then(|(uri, session)| session.format_text(&uri).map(Some))
             .or_else(|err| {
@@ -462,7 +505,10 @@ impl LanguageServer for Backend {
             })
     }
 
+    #[instrument(skip(self, params))]
     async fn rename(&self, params: RenameParams) -> jsonrpc::Result<Option<WorkspaceEdit>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         match self.get_uri_and_session(&params.text_document_position.text_document.uri) {
             Ok((uri, session)) => {
                 let new_name = params.new_name;
@@ -478,10 +524,13 @@ impl LanguageServer for Backend {
         }
     }
 
+    #[instrument(skip(self, params))]
     async fn prepare_rename(
         &self,
         params: TextDocumentPositionParams,
     ) -> jsonrpc::Result<Option<PrepareRenameResponse>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         match self.get_uri_and_session(&params.text_document.uri) {
             Ok((uri, session)) => {
                 let position = params.position;
@@ -505,10 +554,13 @@ pub struct ShowAstParams {
 
 // Custom LSP-Server Methods
 impl Backend {
+    #[instrument(skip(self, params))]
     pub async fn inlay_hints(
         &self,
         params: InlayHintParams,
     ) -> jsonrpc::Result<Option<Vec<InlayHint>>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         match self.get_uri_and_session(&params.text_document.uri) {
             Ok((uri, session)) => {
                 let config = &self.config.read().inlay_hints;
@@ -538,10 +590,13 @@ impl Backend {
     /// A formatted AST is written to a temporary file and the URI is
     /// returned to the client so it can be opened and displayed in a
     /// seperate side panel.
+    #[instrument(skip(self, params))]
     pub async fn show_ast(
         &self,
         params: ShowAstParams,
     ) -> jsonrpc::Result<Option<TextDocumentIdentifier>> {
+        register_dist_tracing_root(TraceId::new(), None).unwrap();
+
         match self.get_uri_and_session(&params.text_document.uri) {
             Ok((_, session)) => {
                 let current_open_file = params.text_document.uri;
