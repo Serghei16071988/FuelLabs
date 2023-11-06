@@ -41,8 +41,9 @@ impl From<b256> for ContractId {
     fn from(bits: b256) -> Self {
         Self { value: bits }
     }
+}
 
-
+impl From<ContractId> for b256 {
     /// Casts a `ContractId` to raw `b256` data.
     /// 
     /// # Returns
@@ -60,8 +61,8 @@ impl From<b256> for ContractId {
     ///     assert(b256_data == ZERO_B256);
     /// }
     /// ```
-    fn into(self) -> b256 {
-        self.value
+    fn from(id: ContractId) -> b256 {
+        id.value
     }
 }
 
@@ -122,7 +123,9 @@ impl From<b256> for AssetId {
     fn from(bits: b256) -> Self {
         Self { value: bits }
     }
+}
 
+impl From<AssetId> for b256 {
     /// Casts an `AssetId` to raw `b256` data.
     /// 
     /// # Returns
@@ -140,8 +143,8 @@ impl From<b256> for AssetId {
     ///     assert(b256_data == ZERO_B256);
     /// }
     /// ```
-    fn into(self) -> b256 {
-        self.value
+    fn from(id: AssetId) -> b256 {
+        id.value
     }
 }
 

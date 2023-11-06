@@ -30,8 +30,10 @@ impl From<b256> for EvmAddress {
             value: local_bits,
         }
     }
+}
 
-    fn into(self) -> b256 {
-        self.value
+impl From<EvmAddress> for b256 {
+    fn from(addr: EvmAddress) -> b256 {
+        addr.value
     }
 }
