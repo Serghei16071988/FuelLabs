@@ -3,6 +3,7 @@ library;
 
 use ::constants::ZERO_B256;
 use ::revert::revert;
+use ::option::Option::{self, *};
 
 // GTF Opcode const selectors
 //
@@ -35,11 +36,11 @@ pub const GTF_CREATE_WITNESS_AT_INDEX = 0x10A;
 pub const GTF_WITNESS_DATA_LENGTH = 0x400;
 pub const GTF_WITNESS_DATA = 0x401;
 
-pub const POLICY_TYPES = 0x500;
-pub const POLICY_GAS_PRICE = 0x501;
-pub const POLICY_WITNESS_LIMIT = 0x502;
-pub const POLICY_MATURITy = 0x503;
-pub const POLICY_MAX_FEE = 0x504;
+pub const GTF_POLICY_TYPES = 0x500;
+pub const GTF_POLICY_GAS_PRICE = 0x501;
+pub const GTF_POLICY_WITNESS_LIMIT = 0x502;
+pub const GTF_POLICY_MATURITy = 0x503;
+pub const GTF_POLICY_MAX_FEE = 0x504;
 
 /// A transaction type.
 pub enum Transaction {
@@ -85,11 +86,21 @@ pub fn tx_type() -> Transaction {
     }
 }
 
-/// Get the transaction gas price for the transaction.
+const GAS_PRICE_POLICY: u32 = 1u32 << 0;
+const MATURITY_POLICY: u32 = 1u32 << 1;
+const WITNESS_LIMIT_POLICY: u32 = 1u32 << 2;
+const MAX_FEE_POLICY: u32 = 1u32 << 3;
+
+/// Returns policies bits. It can be used to identify which policies are set.
+fn policies() -> u32 {
+    __gtf::<u32>(0, GTF_POLICY_TYPES)
+}
+
+/// Get the gas price for the transaction, if it is set.
 ///
 /// # Returns
 ///
-/// * [u64] - The gas price for the transaction.
+/// * [Option<u64>] - The gas price for the transaction.
 ///
 /// # Examples
 ///
@@ -101,41 +112,40 @@ pub fn tx_type() -> Transaction {
 ///     log(gas_price);
 /// }
 /// ```
-pub fn tx_gas_price() -> u64 {
-    match tx_type() {
-        Transaction::Script => __gtf::<u64>(0, GTF_SCRIPT_GAS_PRICE),
-        Transaction::Create => __gtf::<u64>(0, GTF_CREATE_GAS_PRICE),
+pub fn tx_gas_price() -> Option<u64> {
+    let bits = policies();
+    if bits & GAS_PRICE_POLICY > 0 {
+        Some(__gtf::<u64>(0, GTF_POLICY_GAS_PRICE))
+    } else {
+        None
     }
 }
 
-/// Get the transaction-script gas limit for the transaction.
+/// Get the script gas limit for the transaction.
 ///
 /// # Returns
 ///
-/// * [u64] - The gas limit for the transaction.
+/// * [u64] - The script gas limit for the transaction.
 ///
 /// # Examples
 ///
 /// ```sway
-/// use std::tx::tx_gas_limit;
+/// use std::tx::script_gas_limit;
 ///
 /// fn foo() {
-///     let gas_limit = tx_gas_limit();
+///     let gas_limit = script_gas_limit();
 ///     log(gas_limit);
 /// }
 /// ```
-pub fn tx_gas_limit() -> u64 {
-    match tx_type() {
-        Transaction::Script => __gtf::<u64>(0, GTF_SCRIPT_GAS_LIMIT),
-        Transaction::Create => __gtf::<u64>(0, GTF_CREATE_GAS_LIMIT),
-    }
+pub fn script_gas_limit() -> u64 {
+    __gtf::<u64>(0, GTF_SCRIPT_GAS_LIMIT)
 }
 
-/// Get the transaction maturity for the transaction.
+/// Get the maturity for the transaction, if it is set.
 ///
 /// # Returns
 ///
-/// * [u32] - The maturity for the transaction.
+/// * [Option<u32>] - The maturity for the transaction.
 ///
 /// # Examples
 ///
@@ -147,10 +157,62 @@ pub fn tx_gas_limit() -> u64 {
 ///     log(maturity);
 /// }
 /// ```
-pub fn tx_maturity() -> u32 {
-    match tx_type() {
-        Transaction::Script => __gtf::<u32>(0, GTF_SCRIPT_MATURITY),
-        Transaction::Create => __gtf::<u32>(0, GTF_CREATE_MATURITY),
+pub fn tx_maturity() -> Option<u32> {
+    let bits = policies();
+    if bits & MATURITY_POLICY > 0 {
+        Some(__gtf::<u32>(0, GTF_POLICY_GAS_PRICE))
+    } else {
+        None
+    }
+}
+
+/// Get the witness limit for the transaction, if it is set.
+///
+/// # Returns
+///
+/// * [Option<u64>] - The witness limit for the transaction.
+///
+/// # Examples
+///
+/// ```sway
+/// use std::tx::tx_witness_limit;
+///
+/// fn foo() {
+///     let witness_limit = tx_witness_limit();
+///     log(witness_limit);
+/// }
+/// ```
+pub fn tx_witness_limit() -> Option<u64> {
+    let bits = policies();
+    if bits & WITNESS_LIMIT_POLICY > 0 {
+        Some(__gtf::<u64>(0, GTF_POLICY_WITNESS_LIMIT))
+    } else {
+        None
+    }
+}
+
+/// Get the max fee for the transaction, if it is set.
+///
+/// # Returns
+///
+/// * [Option<u64>] - The max fee for the transaction.
+///
+/// # Examples
+///
+/// ```sway
+/// use std::tx::tx_max_fee;
+///
+/// fn foo() {
+///     let max_fee = tx_max_fee();
+///     log(max_fee);
+/// }
+/// ```
+pub fn tx_max_fee() -> Option<u64> {
+    let bits = policies();
+    if bits & MAX_FEE_POLICY > 0 {
+        Some(__gtf::<u64>(0, GTF_POLICY_MAX_FEE))
+    } else {
+        None
     }
 }
 
