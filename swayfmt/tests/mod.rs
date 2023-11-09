@@ -1565,7 +1565,7 @@ fn temporarily_commented_out_fn_with_doc_comments() {
 
 abi MyContract {
     /// Doc comment
-    /* 
+    /*
         Some comment
     */
     fn test_function() -> bool;
@@ -1584,7 +1584,7 @@ impl MyContract for Contract {
 
 abi MyContract {
     /// Doc comment
-    /* 
+    /*
         Some comment
     */
     fn test_function() -> bool;
@@ -1602,3 +1602,632 @@ impl MyContract for Contract {
 "#,
     );
 }
+<<<<<<< Updated upstream
+=======
+
+#[test]
+fn empty_fn() {
+    check(
+        r#"
+library;
+fn test() {
+}
+        "#,
+        r#"library;
+fn test() {}
+"#,
+    );
+}
+
+#[test]
+fn empty_if() {
+    check(
+        r#"
+library;
+fn test() {
+    if ( something ( ) ) {
+    }
+}
+        "#,
+        r#"library;
+fn test() {
+    if (something()) {}
+}
+"#,
+    );
+}
+
+#[test]
+fn bug_whitespace_added_after_comment() {
+    check(
+        r#"
+library;
+// GTF Opcode const selectors
+//
+pub const GTF_OUTPUT_TYPE = 0x201;
+pub const GTF_OUTPUT_COIN_TO = 0x202;
+pub const GTF_OUTPUT_COIN_AMOUNT = 0x203;
+pub const GTF_OUTPUT_COIN_ASSET_ID = 0x204;
+// pub const GTF_OUTPUT_CONTRACT_INPUT_INDEX = 0x205;
+// pub const GTF_OUTPUT_CONTRACT_BALANCE_ROOT = 0x206;
+// pub const GTF_OUTPUT_CONTRACT_STATE_ROOT = 0x207;
+// pub const GTF_OUTPUT_CONTRACT_CREATED_CONTRACT_ID = 0x208;
+// pub const GTF_OUTPUT_CONTRACT_CREATED_STATE_ROOT = 0x209;
+
+
+
+/// The output type for a transaction.
+pub enum Output {
+    /// A coin output.
+    Coin: (), /// A contract output.
+    Contract: (),
+    /// Remaining "change" from spending of a coin.
+    Change: (),
+        /// A variable output.
+    Variable: (),
+}
+    /// The output type for a transaction.
+pub enum Input {
+        /// A variable output.
+            Variable: (),
+}
+        "#,
+        r#"library;
+// GTF Opcode const selectors
+//
+pub const GTF_OUTPUT_TYPE = 0x300;
+pub const GTF_OUTPUT_COIN_TO = 0x301;
+pub const GTF_OUTPUT_COIN_AMOUNT = 0x302;
+pub const GTF_OUTPUT_COIN_ASSET_ID = 0x303;
+// pub const GTF_OUTPUT_CONTRACT_INPUT_INDEX = 0x304;
+// pub const GTF_OUTPUT_CONTRACT_BALANCE_ROOT = 0x305;
+// pub const GTF_OUTPUT_CONTRACT_STATE_ROOT = 0x306;
+// pub const GTF_OUTPUT_CONTRACT_CREATED_CONTRACT_ID = 0x307;
+// pub const GTF_OUTPUT_CONTRACT_CREATED_STATE_ROOT = 0x308;
+
+/// The output type for a transaction.
+pub enum Output {
+    /// A coin output.
+    Coin: (),
+    /// A contract output.
+    Contract: (),
+    /// Remaining "change" from spending of a coin.
+    Change: (),
+    /// A variable output.
+    Variable: (),
+}
+/// The output type for a transaction.
+pub enum Input {
+    /// A variable output.
+    Variable: (),
+}
+"#,
+    );
+}
+
+#[test]
+fn empty_impl() {
+    check(
+        r#"
+library;
+impl OrdEq for u256 {
+}
+        "#,
+        r#"library;
+impl OrdEq for u256 {}
+"#,
+    );
+}
+
+#[test]
+fn chained_methods_0() {
+    check(
+        r#"
+library;
+
+fn test() {
+    fuel.really_long_field.other_really_long_field.foo().bar().baz.quux().yet_another_call().to_go_above_max_line_length();
+}
+        "#,
+        r#"library;
+
+fn test() {
+    fuel.really_long_field
+        .other_really_long_field
+        .foo()
+        .bar()
+        .baz
+        .quux()
+        .yet_another_call()
+        .to_go_above_max_line_length();
+}
+"#,
+    );
+}
+
+#[test]
+fn chained_methods_1() {
+    check(
+        r#"
+library;
+
+fn test() {
+    fuelcoin.really_long_field.other_really_long_field.foo().bar().baz.quux().yet_another_call().to_go_above_max_line_length();
+}
+        "#,
+        r#"library;
+
+fn test() {
+    fuelcoin
+        .really_long_field
+        .other_really_long_field
+        .foo()
+        .bar()
+        .baz
+        .quux()
+        .yet_another_call()
+        .to_go_above_max_line_length();
+}
+"#,
+    );
+}
+
+#[test]
+fn chained_methods_2() {
+    check(
+        r#"
+library;
+
+fn test() {
+    fuelcoin.really_long_field.other_really_long_field.foo().bar().baz.quux([1,2]).yet_another_call([1, 2, 3, 4, 6, 7, 7, 8, 8, 9, 9, 9, 19, 1123123, 12312, 312, 312, 3123, 12,31, 44],[1,2], true).to_go_above_max_line_length();ping();
+}
+        "#,
+        r#"library;
+
+fn test() {
+    fuelcoin
+        .really_long_field
+        .other_really_long_field
+        .foo()
+        .bar()
+        .baz
+        .quux([1, 2])
+        .yet_another_call(
+            [
+                1, 2, 3, 4, 6, 7, 7, 8, 8, 9, 9, 9, 19, 1123123,
+                12312, 312, 312, 3123, 12, 31, 44,
+            ],
+            [1, 2],
+            true,
+        )
+        .to_go_above_max_line_length();
+    ping();
+}
+"#,
+    );
+}
+
+#[test]
+fn chained_methods_3() {
+    check(
+        r#"
+library;
+
+fn test() {
+    fuelcoin.really_long_field.other_really_long_field.foo().bar().baz.quux([1,2]).yet_another_call(1, 2, 3, 4, 6, 7, 7, 8, 8, 9, 9, 9, 19, 1123123, 12312, 312, 312, 3123, 12,31, 44,[1,2], true).to_go_above_max_line_length();
+}
+        "#,
+        r#"library;
+
+fn test() {
+    fuelcoin
+        .really_long_field
+        .other_really_long_field
+        .foo()
+        .bar()
+        .baz
+        .quux([1, 2])
+        .yet_another_call(
+            1,
+            2,
+            3,
+            4,
+            6,
+            7,
+            7,
+            8,
+            8,
+            9,
+            9,
+            9,
+            19,
+            1123123,
+            12312,
+            312,
+            312,
+            3123,
+            12,
+            31,
+            44,
+            [1, 2],
+            true,
+        )
+        .to_go_above_max_line_length();
+}
+"#,
+    );
+}
+
+#[test]
+fn comment_in_the_middle() {
+    check(
+        r#"
+        library;
+
+        fn test() {
+            let number: /* this number is for counting */ u64 = 10;
+
+
+
+        }"#,
+        r#"library;
+
+fn test() {
+    let number: /* this number is for counting */ u64 = 10;
+}
+"#,
+    );
+}
+
+#[test]
+fn trait_multiline_method_x() {
+    check(
+        r#"library; trait MyComplexTrait { fn complex_function( arg1: MyStruct<[b256; 3], u8>, arg2: [MyStruct<u64, bool>; 4],
+        arg3: (str[5], bool),
+        arg4: MyOtherStruct) -> str[6]; }"#,
+        r#"library;
+trait MyComplexTrait {
+    fn complex_function(
+        arg1: MyStruct<[b256; 3], u8>,
+        arg2: [MyStruct<u64, bool>; 4],
+        arg3: (str[5], bool),
+        arg4: MyOtherStruct,
+    ) -> str[6];
+}
+"#,
+    );
+}
+
+#[test]
+fn long_array() {
+    check(
+        r#"library;
+
+        fn main() {
+            let x = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+        }"#,
+        r#"library;
+fn main() {
+    let x = [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+        17, 18, 19, 20, 21, 22,
+    ];
+}
+"#,
+    );
+}
+
+#[test]
+fn struct_new_line() {
+    check(
+        r#"
+        library;
+
+struct Item {
+    price: u64, amount: u64,
+    id: u64,
+}
+
+enum MyEnum {
+    Item: Item,
+}
+
+fn main() {
+    let my_enum = MyEnum::Item(Item {
+        price: 5, amount: 2, id: 42,
+    });
+    my_enum.test(Item {
+        price: 5, amount: 2, id: 42,
+    });
+}
+            "#,
+        r#"library;
+
+struct Item {
+    price: u64,
+    amount: u64,
+    id: u64,
+}
+
+enum MyEnum {
+    Item: Item,
+}
+
+fn main() {
+    let my_enum = MyEnum::Item(Item {
+        price: 5,
+        amount: 2,
+        id: 42,
+    });
+    my_enum
+        .test(Item {
+            price: 5,
+            amount: 2,
+            id: 42,
+        });
+}
+"#,
+    )
+}
+
+#[test]
+fn struct_new_line_2() {
+    check(
+        r#"
+        library;
+impl Convert<Square> for Rectangle { fn from(t: Square) -> Self {
+Self { width: t
+    .width,length: t.width,
+}}}
+            "#,
+        r#"library;
+impl Convert<Square> for Rectangle {
+    fn from(t: Square) -> Self {
+        Self {
+            width: t.width,
+            length: t.width,
+        }
+    }
+}
+"#,
+    )
+}
+
+#[test]
+fn func_call_long_args() {
+    check(
+        r#"
+        library;
+
+        fn access_control_with_identity() {
+            // ANCHOR: access_control_with_identity
+            let sender = msg_sender().unwrap();
+            require(sender == storage.owner.read(), MyError::UnauthorizedUser(sender));
+            // ANCHOR_END: access_control_with_identity
+        }
+    "#,
+        r#"library;
+
+fn access_control_with_identity() {
+    // ANCHOR: access_control_with_identity
+    let sender = msg_sender().unwrap();
+    require(
+        sender == storage
+            .owner
+            .read(),
+        MyError::UnauthorizedUser(sender),
+    );
+    // ANCHOR_END: access_control_with_identity
+}
+"#,
+    )
+}
+
+#[test]
+fn func_call_long_args_with_long_expr() {
+    check(
+        r#"
+        library;
+
+        fn access_control_with_identity() {
+            // ANCHOR: access_control_with_identity
+            let sender = msg_sender().unwrap();
+            require(sender == storage.owner.read().some_prop().that_is_too_long_to_fit_in_one_line().or_two_lines(), MyError::UnauthorizedUser(sender));
+            // ANCHOR_END: access_control_with_identity
+        }
+    "#,
+        r#"library;
+
+fn access_control_with_identity() {
+    // ANCHOR: access_control_with_identity
+    let sender = msg_sender().unwrap();
+    require(
+        sender == storage
+            .owner
+            .read()
+            .some_prop()
+            .that_is_too_long_to_fit_in_one_line()
+            .or_two_lines(),
+        MyError::UnauthorizedUser(sender),
+    );
+    // ANCHOR_END: access_control_with_identity
+}
+"#,
+    )
+}
+
+#[test]
+fn method_call_long_args_with_long_expr() {
+    check(
+        r#"
+        library;
+
+        fn access_control_with_identity() {
+            // ANCHOR: access_control_with_identity
+            let sender = msg_sender().unwrap();
+            sender.require(sender == storage.owner.read().some_prop().that_is_too_long_to_fit_in_one_line().or_two_lines(), MyError::UnauthorizedUser(sender));
+            // ANCHOR_END: access_control_with_identity
+        }
+    "#,
+        r#"library;
+
+fn access_control_with_identity() {
+    // ANCHOR: access_control_with_identity
+    let sender = msg_sender().unwrap();
+    sender
+        .require(
+            sender == storage
+                .owner
+                .read()
+                .some_prop()
+                .that_is_too_long_to_fit_in_one_line()
+                .or_two_lines(),
+            MyError::UnauthorizedUser(sender),
+        );
+        // ANCHOR_END: access_control_with_identity
+}
+"#,
+    )
+}
+
+#[test]
+fn while_too_long_expr() {
+    check(
+        r#"
+    library;
+
+    fn main() {
+    // ANCHOR_END: vec_get
+    // ANCHOR: vec_get_oob
+    let does_not_exist = v.get(100);
+    // ...decide here how to handle an out-of-bounds access
+    // ANCHOR_END: vec_get_oob
+    // ANCHOR: vec_iterate
+    let mut i = 0;
+    while i < v.len() {
+        log(v.get(i).unwrap());
+        i += 1;
+    }
+    // ANCHOR_END: vec_iterate
+    // ANCHOR: vec_multiple_data_types
+    enum TableCell {
+        Int: u64,
+        B256: b256,
+        Boolean: bool,
+    }
+}
+"#,
+        r#"library;
+
+fn main() {
+    // ANCHOR_END: vec_get
+    // ANCHOR: vec_get_oob
+    let does_not_exist = v.get(100);
+    // ...decide here how to handle an out-of-bounds access
+    // ANCHOR_END: vec_get_oob
+    // ANCHOR: vec_iterate
+    let mut i = 0;
+    while i < v.len() {
+        log(v.get(i).unwrap());
+        i += 1;
+    }
+    // ANCHOR_END: vec_iterate
+    // ANCHOR: vec_multiple_data_types
+    enum TableCell {
+        Int: u64,
+        B256: b256,
+        Boolean: bool,
+    }
+}
+"#,
+    );
+}
+
+#[test]
+fn match_as_arg() {
+    check(
+        r#"
+    library;
+
+    fn main() {
+         assert(match color { Color::Blue => true,
+    _ => false,
+    });
+}
+"#,
+        r#"library;
+
+fn main() {
+    assert(match color {
+        Color::Blue => true,
+        _ => false,
+    });
+}
+"#,
+    );
+}
+
+#[test]
+fn single_long_arg() {
+    check(
+        r#"library;
+
+    fn main() {
+        if foo {
+            // ANCHOR: storage_map_insert
+                let addr1 = Address::from(0x0101010101010101010101010101010101010101010101010101010101010101);
+            }
+    }
+
+
+    "#,
+        r#"library;
+
+fn main() {
+    if foo {
+        // ANCHOR: storage_map_insert
+        let addr1 = Address::from(
+            0x0101010101010101010101010101010101010101010101010101010101010101,
+        );
+    }
+}
+"#,
+    );
+}
+
+#[test]
+fn method_call_2() {
+    check(
+        r#"
+    library;
+
+fn main() {
+    let contract_address = 0x9299da6c73e6dc03eeabcce242bb347de3f5f56cd1c70926d76526d7ed199b8b;
+    let caller = abi(Wallet, contract_address);
+    let amount_to_send = 200;
+    let recipient_address = Address::from(contract_address);
+    caller.send_funds { gas: 10000, coins: 0, asset_id: ZERO_B256 }(
+            amount_to_send,
+            recipient_address,
+        );
+}
+
+    "#,
+        r#"library;
+
+fn main() {
+    let contract_address = 0x9299da6c73e6dc03eeabcce242bb347de3f5f56cd1c70926d76526d7ed199b8b;
+    let caller = abi(Wallet, contract_address);
+    let amount_to_send = 200;
+    let recipient_address = Address::from(contract_address);
+    caller
+        .send_funds {
+            gas: 10000,
+            coins: 0,
+            asset_id: ZERO_B256,
+        }(amount_to_send, recipient_address);
+}
+"#,
+    )
+}
+>>>>>>> Stashed changes
