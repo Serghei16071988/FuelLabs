@@ -36,11 +36,11 @@ exclude = [
 fuel-core-client = { version = "0.20.8", default-features = false }
 
 # Dependencies from the `fuel-vm` repository:
-fuel-asm = { version = "0.41.0"}
-fuel-crypto = { version = "0.41.0"}
-fuel-tx = { version = "0.41.0"}
-fuel-types = { version = "0.41.0"}
-fuel-vm = { version = "0.41.0"}
+fuel-asm = { version = "0.42.0"}
+fuel-crypto = { version = "0.42.0"}
+fuel-tx = { version = "0.42.0"}
+fuel-types = { version = "0.42.0"}
+fuel-vm = { version = "0.42.0"}
 
 
 # Dependencies from the `fuels-rs` repository:
@@ -59,7 +59,7 @@ repository = "https://github.com/FuelLabs/sway"
 
 [patch.crates-io]
 # Keep it until release of the `fuel-core`.
-fuel-core-client = { git = "https://github.com/FuelLabs/fuel-core", branch = "master" }
+fuel-core-client = { git = "https://github.com/FuelLabs/fuel-core", branch = "feature/transaction-policies" }
 
 # Keep it until release of the `fuels-rs`.
 fuels-core = { git = "https://github.com/FuelLabs/fuels-rs", branch = "hal3e/transaction-policies" }
